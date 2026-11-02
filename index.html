@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stride Order Form</title>
+<style>
+  /* SAHI Sans, shipped by the DLS package */
+  @font-face { font-family: "SAHI Sans"; src: url("fonts/SAHISans-Regular.ttf") format("truetype"); font-weight: 400; font-display: block; }
+  @font-face { font-family: "SAHI Sans"; src: url("fonts/SAHISans-Medium.ttf") format("truetype"); font-weight: 500 600; font-display: block; }
+
+  /* DLS semantic tokens — dark mode values from Figma "Base Design System" */
+  :root {
+    --surface-l0: #0f0f0f;                 /* page */
+    --surface-l1: #171717;                 /* surface/solid/neutral/L1 */
+    --surface-l2: #1f1f1f;                 /* surface/solid/neutral/L2 */
+    --surface-l4: #404040;                 /* surface/solid/neutral/L4 */
+    --surface-inverse-l1: #ffffff;         /* surface/solid/inverse/L1 */
+    --surface-t-inverse-l1: #ffffff14;     /* surface/transparent/inverse/L1 */
+    --surface-t-inverse-l2: #ffffff24;     /* surface/transparent/inverse/L2 */
+    --surface-negative: #c4342e;           /* surface/solid/negative/default */
+    --surface-positive: #0e854d;           /* surface/solid/positive/default */
+    --text-primary: #ffffff;               /* text/neutral/primary */
+    --text-secondary: #a3a3a3;             /* text/neutral/secondary */
+    --text-inverse: #0f0f0f;               /* text/inverse/primary */
+    --text-positive: #40e897;              /* text/positive/default */
+    --text-positive-contrast: #dafeec;     /* text/positive/contrast */
+    --text-negative: #ee807b;              /* text/negative/default */
+    --border-l3: #ffffff1f;                /* border/default/L3, border/L1, divider/L1 */
+    --accent: #a50f66;                     /* accent/surface */
+    --btn-positive: #0e854d;               /* components/button/positive-filled/surface */
+    --btn-negative: #c4342e;               /* components/button/negative-filled/surface */
+    --scrim: rgba(0, 0, 0, .7);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #050505; }
+  body {
+    font-family: "SAHI Sans", system-ui, sans-serif;
+    font-weight: 400;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    display: flex; justify-content: center;
+    min-height: 100vh;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  img { display: block; }
+
+  /* Device frame: 360 × 1030 per Figma */
+  .device {
+    position: relative;
+    width: 360px; height: 1030px;
+    background: var(--surface-l0);
+    overflow: hidden;
+  }
+  @media (min-width: 420px) { body { padding: 24px 0; } .device { border-radius: 24px; box-shadow: 0 0 0 1px #ffffff14; } }
+
+  /* Typography (DLS body styles) */
+  .t-s    { font-size: 14px; line-height: 16.8px; font-weight: 400; }
+  .t-s-b  { font-size: 14px; line-height: 16.8px; font-weight: 500; }
+  .t-m    { font-size: 16px; line-height: 19.2px; font-weight: 400; }
+  .t-m-b  { font-size: 16px; line-height: 19.2px; font-weight: 500; }
+  .t-l-b  { font-size: 18px; line-height: 21.6px; font-weight: 500; }
+  .t-xs   { font-size: 12px; line-height: 14.4px; font-weight: 400; }
+  .t-xs-b { font-size: 12px; line-height: 14.4px; font-weight: 500; }
+  .c-sec  { color: var(--text-secondary); }
+  .c-pos  { color: var(--text-positive); }
+  .nowrap { white-space: nowrap; }
+
+  /* ---------- Underlying stock page ---------- */
+  .statusbar {
+    position: absolute; left: 0; top: 0; width: 360px; height: 50px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 20px 12px;
+  }
+  .statusbar .icons { display: flex; gap: 3px; }
+  .page-header {
+    position: absolute; left: 0; top: 0; width: 360px; height: 114px;
+    padding: 52px 0 16px;
+  }
+  .page-header .row { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 44px; }
+  .page-header .left { display: flex; align-items: center; gap: 16px; }
+  .page-header .name { display: flex; align-items: center; gap: 5px; }
+  .page-header .quote { display: flex; align-items: center; gap: 8px; height: 20px; margin-top: 4px; }
+  .page-header .quote .px { font-size: 16px; line-height: 20px; font-weight: 600; }
+  .page-header .actions { display: flex; gap: 16px; }
+  .scrim { position: absolute; inset: 0; background: var(--scrim); }
+
+  /* ---------- Order sheet (DlsSheet) ---------- */
+  .sheet {
+    position: absolute; left: 0; top: 97px; width: 360px; bottom: 0;
+    display: flex; flex-direction: column;
+    background: var(--surface-l1);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(0);
+    transition: transform .32s cubic-bezier(.2, .8, .2, 1);
+  }
+  .sheet.closed { transform: translateY(105%); }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 84px; padding: 24px 16px 16px;
+    border-bottom: 1px solid var(--border-l3);
+    border-radius: 16px 16px 0 0;
+    flex: none;
+  }
+  .sheet-head .quote { display: flex; align-items: center; gap: 8px; height: 20px; margin-top: 4px; }
+  .sheet-head .quote > span:first-child { display: flex; gap: 4px; align-items: center; }
+  .side-switch { display: flex; align-items: center; gap: 4px; padding-bottom: 10px; border-radius: 8px; color: var(--text-positive-contrast); }
+  .side-switch img { transform: rotate(-90deg); }
+  .sell .side-switch { color: #fde3e2; }
+  .sell .side-switch img { filter: hue-rotate(-150deg) saturate(1.4) brightness(1.25); }
+
+  .sheet-body { flex: 1; overflow-y: auto; scrollbar-width: none; }
+  .sheet-body::-webkit-scrollbar { display: none; }
+  .form { padding: 0 16px; }
+
+  /* Segmented control (DlsSegmentedControl) */
+  .seg { display: inline-flex; gap: 2px; padding: 2px; border-radius: 48px; background: var(--surface-t-inverse-l1); }
+  .seg button {
+    padding: 6px 12px; border-radius: 40px;
+    font-size: 14px; line-height: 16.8px; font-weight: 400;
+    color: var(--text-secondary); white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .seg button[aria-pressed="true"] { background: var(--surface-l1); color: var(--text-primary); font-weight: 500; }
+  .seg.l2 { background: var(--surface-t-inverse-l2); }
+  /* Product tabs variant: solid track, inverse pill */
+  .seg.product { background: var(--surface-l2); }
+  .seg.product button { padding: 6px 16px; color: var(--text-primary); }
+  .seg.product button[aria-pressed="true"] { background: var(--surface-inverse-l1); color: var(--text-inverse); }
+
+  /* Form rows */
+  .row { display: flex; align-items: center; justify-content: space-between; }
+  .r-product { padding: 16px 0; height: 65px; }
+  .r-input   { padding: 14px 0; height: 68px; }
+  .r-otype   { padding: 12px 0 20px; height: 65px; gap: 23px; }
+  .r-otype > span { flex: 1; }
+  .r-valid   { padding: 18px 0; height: 69px; }
+
+  /* Number input (DlsNumberField) */
+  .num {
+    width: 116px; padding: 9px 12px;
+    border: 1px solid var(--border-l3); border-radius: 12px;
+    background: transparent; color: var(--text-primary);
+    font-family: inherit; font-size: 18px; line-height: 21.6px; font-weight: 500;
+    text-align: right; outline: none;
+    transition: border-color .15s;
+  }
+  .num:focus { border-color: #ffffff66; }
+  .num.sm { width: 112px; font-size: 16px; line-height: 19.2px; height: 38px; }
+  .r-input .num { height: 40px; }
+  .num:disabled { color: var(--text-secondary); }
+
+  /* Risk cards (Auto SL / Auto TP) */
+  .card-wrap { padding: 16px 8px; }
+  .card-wrap.tp { padding: 0 8px; }
+  .card { border: 1px solid var(--border-l3); border-radius: 16px; padding: 0 16px; }
+  .card-head { display: flex; align-items: center; gap: 12px; padding: 16px 0; }
+  .card-head .title { flex: 1; display: flex; align-items: center; gap: 16px; }
+  .badge { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; font-size: 14px; line-height: 16.8px; font-weight: 500; color: #fff; }
+  .badge.sl { background: var(--surface-negative); }
+  .badge.tp { background: var(--surface-positive); }
+  .card-body { display: none; }
+  .card.on .card-body { display: block; }
+  .c-otype { height: 56px; padding: 8px 0; }
+  .c-price { padding: 8px 0; }
+  .lbl { display: flex; align-items: center; gap: 4px; }
+  .price-lbl { display: flex; align-items: center; gap: 2px; }
+  .price-lbl button { display: flex; align-items: center; gap: 2px; font-weight: 500; font-size: 14px; line-height: 16.8px; }
+  .price-lbl img { transform: rotate(-90deg); }
+  .field { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .hint { height: 15px; font-size: 12px; line-height: 15px; color: var(--text-secondary); white-space: nowrap; }
+  .hint b { font-weight: 400; color: #fff; }
+  .c-trail { height: 56px; padding: 16px 0; display: flex; align-items: center; gap: 16px; cursor: pointer; }
+  .check { width: 18px; height: 18px; position: relative; }
+  .check .on { display: none; position: absolute; left: 0; top: 2.25px; width: 13.5px; height: 13.5px; border-radius: 1.5px; background: var(--accent); }
+  .check .on svg { position: absolute; inset: 0; }
+  .c-trail[aria-checked="true"] .check img { display: none; }
+  .c-trail[aria-checked="true"] .check .on { display: block; }
+
+  /* Switch (DlsSwitch) */
+  .switch {
+    position: relative; width: 44px; height: 24px; border-radius: 32px; flex: none;
+    border: 1px solid var(--border-l3); padding: 0 4px;
+    display: flex; align-items: center;
+  }
+  .switch .knob { width: 16px; height: 16px; border-radius: 24px; background: var(--surface-l4); transition: transform .18s; }
+  .switch .tick { display: none; position: absolute; left: 26px; top: 6px; }
+  .switch[aria-checked="true"] { background: var(--accent); border: 0; padding: 0 3px; justify-content: flex-end; }
+  .switch[aria-checked="true"] .knob { width: 18px; height: 18px; background: #fff; }
+  .switch[aria-checked="true"] .tick { display: block; }
+
+  /* Diwali diya glyph — motion follows DLS tokens:
+     DlsMotionDuration.expressive 200ms + DlsMotionCurve.expressive for the flame igniting,
+     DlsMotionCurve.standard (Curves.ease) for the glyph cross-fade and the idle flicker. */
+  :root {
+    --motion-expressive: 200ms;
+    --curve-expressive: cubic-bezier(.16, 1, .3, 1);
+    --curve-standard: ease;
+  }
+  .tick path { stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .tick .flame { transform-box: fill-box; transform-origin: 50% 100%; }
+  .switch[aria-checked="true"] .tick { animation: glyph-in var(--motion-expressive) var(--curve-standard) both; }
+  .switch[aria-checked="true"] .flame {
+    animation:
+      flame-ignite var(--motion-expressive) var(--curve-expressive) both,
+      flame-settle 240ms var(--curve-standard) var(--motion-expressive) forwards,
+      flame-flicker 1600ms var(--curve-standard) 440ms 1;
+  }
+  @keyframes glyph-in { from { opacity: 0; } to { opacity: 1; } }
+  /* Ignite: grows up from the wick and overshoots into a flare (expressive, 200ms) */
+  @keyframes flame-ignite {
+    from { transform: scale(.2); opacity: 0; }
+    to   { transform: scale(1.1, 1.35); opacity: 1; }
+  }
+  /* Settle: flare relaxes back to rest (DlsMotionDuration.standard, 240ms) */
+  @keyframes flame-settle {
+    from { transform: scale(1.1, 1.35); }
+    to   { transform: none; }
+  }
+  /* One flicker pass: tip sways side to side, then rests (base stays on the wick) */
+  @keyframes flame-flicker {
+    0%, 100% { transform: none; }
+    25% { transform: skewX(-12deg) scaleY(1.12); }
+    50% { transform: skewX(6deg) scaleY(.9); }
+    75% { transform: skewX(10deg) scaleY(1.08); }
+  }
+  /* Reduced motion: jump straight to the end state */
+  @media (prefers-reduced-motion: reduce) {
+    .switch[aria-checked="true"] .tick,
+    .switch[aria-checked="true"] .flame { animation: none; }
+  }
+
+  .spacer { height: 20px; }
+
+  /* Footer (Bottom variant) */
+  .foot {
+    flex: none; height: 80px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px 16px;
+    background: var(--surface-l1);
+    border-top: 1px solid var(--border-l3);
+  }
+  .foot .meta { display: flex; flex-direction: column; gap: 2px; }
+  .foot .meta > div { display: flex; gap: 4px; height: 16px; align-items: center; }
+  .foot .meta > div:last-child { height: auto; align-items: flex-start; }
+  .foot u { font-weight: 500; text-underline-position: from-font; }
+  .cta {
+    width: 116px; height: 48px; border-radius: 40px;
+    background: var(--btn-positive); color: #fff;
+    font-size: 16px; line-height: 19.2px; font-weight: 500;
+    transition: filter .15s, transform .1s;
+  }
+  .cta:active { transform: scale(.97); }
+  .sell .cta { background: var(--btn-negative); }
+
+  /* Toast (DlsToast) */
+  .toast {
+    position: absolute; left: 16px; right: 16px; bottom: 96px;
+    padding: 12px 16px; border-radius: 12px;
+    background: var(--surface-inverse-l1); color: var(--text-inverse);
+    font-size: 14px; line-height: 16.8px; font-weight: 500;
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: none; }
+
+  .reopen { position: absolute; left: 16px; right: 16px; bottom: 24px; height: 48px; border-radius: 40px; background: var(--btn-positive); font-weight: 500; display: none; }
+  .device.sheet-closed .reopen { display: block; }
+  .device.sheet-closed .scrim { opacity: 0; pointer-events: none; }
+  .scrim { transition: opacity .25s; }
+</style>
+</head>
+<body>
+<div class="device" id="device">
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <img src="assets/time.svg" width="46" height="10" alt="5:13 PM">
+    <div class="icons">
+      <img src="assets/wifi.svg" width="18" height="18" alt="">
+      <img src="assets/signal.svg" width="18" height="18" alt="">
+      <img src="assets/battery.svg" width="18" height="18" alt="">
+    </div>
+  </div>
+
+  <!-- Stock page header (behind sheet) -->
+  <header class="page-header">
+    <div class="row">
+      <div class="left">
+        <img src="assets/back.svg" width="11" height="24" alt="Back">
+        <div>
+          <div class="name"><span class="t-m nowrap">Mahindra Holiday &amp; Resort</span><img src="assets/chevron-down-filled.svg" width="12.75" height="18" alt=""></div>
+          <div class="quote nowrap">
+            <span style="display:flex;gap:4px;align-items:center"><span class="px">1,657.50</span><span class="t-s c-pos">+1.13 (0.07%)</span></span>
+            <span class="t-s c-sec">NSE</span>
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <img src="assets/search-md.svg" width="24" height="24" alt="Search">
+        <img src="assets/settings.svg" width="24" height="24" alt="More">
+      </div>
+    </div>
+  </header>
+
+  <div class="scrim" id="scrim"></div>
+  <button class="reopen" id="reopen">Buy Nippon Nifty IT ETF</button>
+
+  <!-- Order form sheet -->
+  <section class="sheet" id="sheet" aria-label="Order form">
+    <div class="sheet-head">
+      <div>
+        <div class="t-m-b nowrap" style="line-height:20px">Nippon Nifty IT ETF</div>
+        <div class="quote nowrap">
+          <span><span class="t-m-b">1,657.50</span><span class="t-s c-pos">(0.07%)</span></span>
+          <span class="t-s c-sec">NSE</span>
+        </div>
+      </div>
+      <button class="side-switch t-m-b" id="side" aria-label="Switch Buy / Sell">
+        <span id="sideLabel">Buy</span>
+        <img src="assets/arrow-buy.svg" width="12" height="12" alt="">
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <div class="form">
+        <div class="row r-product">
+          <div class="seg product" data-seg>
+            <button aria-pressed="true">Delivery</button>
+            <button aria-pressed="false">Intraday</button>
+          </div>
+        </div>
+
+        <div class="row r-input">
+          <span class="t-s c-sec">Quantity</span>
+          <input class="num" id="qty" inputmode="numeric" value="10" aria-label="Quantity">
+        </div>
+
+        <div class="row r-otype">
+          <span class="t-s c-sec">Order type</span>
+          <div class="seg" data-seg id="otype">
+            <button aria-pressed="true">Market</button>
+            <button aria-pressed="false">Limit</button>
+            <button aria-pressed="false">Trigger</button>
+          </div>
+        </div>
+
+        <div class="row r-input">
+          <span class="t-s c-sec">Limit price</span>
+          <input class="num" id="limit" inputmode="decimal" value="1600.20" aria-label="Limit price">
+        </div>
+
+        <div class="row r-valid">
+          <span class="t-s c-sec">Validity</span>
+          <div class="seg" data-seg>
+            <button aria-pressed="true">Day</button>
+            <button aria-pressed="false">GTT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto Stop Loss -->
+      <div class="card-wrap">
+        <div class="card on" id="slCard">
+          <div class="card-head">
+            <div class="title"><span class="badge sl">SL</span><span class="t-s-b">Auto Stop Loss</span></div>
+            <button class="switch" role="switch" aria-checked="true" data-card="slCard" aria-label="Auto Stop Loss">
+              <span class="knob"></span><svg class="tick" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path class="flame" d="M12 2C13.9 4.3 14.75 5.9 14.75 7.25C14.75 8.77 13.52 10 12 10C10.48 10 9.25 8.77 9.25 7.25C9.25 5.9 10.1 4.3 12 2Z"/><path d="M2.5 12.5C5.5 14.2 9.5 14.4 12 12.5C14.5 14.4 18.5 14.2 21.5 12.5C21 17.5 17 20.5 12 20.5C7 20.5 3 17.5 2.5 12.5Z"/></svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="row c-otype">
+              <span class="lbl t-s c-sec">Order type <img src="assets/info-circle.svg" width="14" height="14" alt=""></span>
+              <div class="seg l2" data-seg>
+                <button aria-pressed="true">SL Market</button>
+                <button aria-pressed="false">SL Limit</button>
+              </div>
+            </div>
+            <div class="row c-price">
+              <span class="price-lbl t-s c-sec">Trigger <button data-cycle="Price,%" style="color:var(--text-primary)"><span>Price</span><img src="assets/arrow-price.svg" width="12" height="12" alt=""></button></span>
+              <div class="field">
+                <input class="num sm" value="1500" inputmode="decimal" data-pct="sl" aria-label="SL trigger price">
+                <span class="hint">SL Trigger: <b>5%</b></span>
+              </div>
+            </div>
+            <div class="row c-price">
+              <span class="price-lbl t-s c-sec">Limit <button data-cycle="Price,%" style="color:var(--text-primary)"><span>Price</span><img src="assets/arrow-price.svg" width="12" height="12" alt=""></button></span>
+              <div class="field">
+                <input class="num sm" value="1400" inputmode="decimal" data-pct="sl" aria-label="SL limit price">
+                <span class="hint">SL Trigger: 8<b>%</b></span>
+              </div>
+            </div>
+            <div class="c-trail" role="checkbox" aria-checked="false" tabindex="0" id="trail">
+              <span class="check">
+                <img src="assets/checkbox.svg" width="18" height="18" alt="">
+                <span class="on"><svg width="13.5" height="13.5" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2 4.9 8.6 9.5 3.6" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </span>
+              <span class="lbl t-s c-sec">Trailing Stop Loss <img src="assets/info-circle.svg" width="14" height="14" alt=""></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto Take Profit -->
+      <div class="card-wrap tp">
+        <div class="card" id="tpCard">
+          <div class="card-head">
+            <div class="title"><span class="badge tp">TP</span><span class="t-s-b">Auto Take Profit</span></div>
+            <button class="switch" role="switch" aria-checked="false" data-card="tpCard" aria-label="Auto Take Profit">
+              <span class="knob"></span><svg class="tick" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path class="flame" d="M12 2C13.9 4.3 14.75 5.9 14.75 7.25C14.75 8.77 13.52 10 12 10C10.48 10 9.25 8.77 9.25 7.25C9.25 5.9 10.1 4.3 12 2Z"/><path d="M2.5 12.5C5.5 14.2 9.5 14.4 12 12.5C14.5 14.4 18.5 14.2 21.5 12.5C21 17.5 17 20.5 12 20.5C7 20.5 3 17.5 2.5 12.5Z"/></svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="row c-otype">
+              <span class="lbl t-s c-sec">Order type <img src="assets/info-circle.svg" width="14" height="14" alt=""></span>
+              <div class="seg l2" data-seg>
+                <button aria-pressed="true">TP Market</button>
+                <button aria-pressed="false">TP Limit</button>
+              </div>
+            </div>
+            <div class="row c-price">
+              <span class="price-lbl t-s c-sec">Target <button data-cycle="Price,%" style="color:var(--text-primary)"><span>Price</span><img src="assets/arrow-price.svg" width="12" height="12" alt=""></button></span>
+              <div class="field">
+                <input class="num sm" value="1800" inputmode="decimal" aria-label="TP target price">
+                <span class="hint">TP Target: <b>9%</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <div style="height:12px"></div>
+    </div>
+
+    <footer class="foot">
+      <div class="meta">
+        <div><span class="t-xs c-sec">Est. balance:</span><span class="t-xs-b">₹9,99,999</span></div>
+        <div><span class="t-xs c-sec">Req margin:</span><span class="t-xs-b" id="margin">₹92,187</span></div>
+        <div class="t-xs"><span class="c-sec"><u>Charges</u>:</span><span class="t-xs-b">₹0.00</span></div>
+      </div>
+      <button class="cta" id="cta">Buy</button>
+    </footer>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  // Segmented controls
+  $$('[data-seg]').forEach(seg => seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    $$('button', seg).forEach(x => x.setAttribute('aria-pressed', x === b));
+    if (seg.id === 'otype') $('#limit').disabled = b.textContent === 'Market';
+  }));
+  $('#limit').disabled = false; // design shows the limit field filled even on Market
+
+  // Switches expand/collapse their card
+  $$('.switch').forEach(sw => sw.addEventListener('click', () => {
+    const on = sw.getAttribute('aria-checked') !== 'true';
+    sw.setAttribute('aria-checked', on);
+    $('#' + sw.dataset.card).classList.toggle('on', on);
+  }));
+
+  // Trailing stop loss checkbox
+  const trail = $('#trail');
+  const flip = () => trail.setAttribute('aria-checked', trail.getAttribute('aria-checked') !== 'true');
+  trail.addEventListener('click', flip);
+  trail.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
+
+  // Price ⇄ % unit cycle
+  $$('[data-cycle]').forEach(b => b.addEventListener('click', () => {
+    const opts = b.dataset.cycle.split(','), s = $('span', b);
+    s.textContent = opts[(opts.indexOf(s.textContent) + 1) % opts.length];
+  }));
+
+  // Buy ⇄ Sell
+  const device = $('#device');
+  $('#side').addEventListener('click', () => {
+    const sell = !device.classList.contains('sell');
+    device.classList.toggle('sell', sell);
+    $('#sideLabel').textContent = $('#cta').textContent = sell ? 'Sell' : 'Buy';
+    $('#reopen').textContent = (sell ? 'Sell' : 'Buy') + ' Nippon Nifty IT ETF';
+  });
+
+  // Number-only inputs
+  $$('.num').forEach(i => i.addEventListener('input', () => {
+    const dec = i.inputMode === 'decimal';
+    i.value = i.value.replace(dec ? /[^\d.]/g : /\D/g, '').replace(/(\..*)\./g, '$1');
+  }));
+
+  // Toast
+  const toast = $('#toast');
+  const say = msg => { toast.textContent = msg; toast.classList.add('show'); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove('show'), 2200); };
+
+  $('#cta').addEventListener('click', () => {
+    const qty = +$('#qty').value || 0;
+    if (!qty) return say('Enter a quantity');
+    const side = $('#cta').textContent;
+    const type = $('#otype [aria-pressed="true"]').textContent;
+    say(`${side} order placed · ${qty} qty · ${type}`);
+  });
+
+  // Dismiss sheet via scrim, reopen via button
+  $('#scrim').addEventListener('click', () => { $('#sheet').classList.add('closed'); device.classList.add('sheet-closed'); });
+  $('#reopen').addEventListener('click', () => { $('#sheet').classList.remove('closed'); device.classList.remove('sheet-closed'); });
+</script>
+</body>
+</html>
