@@ -46,10 +46,10 @@
   button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
   img { display: block; }
 
-  /* Device frame: 360 × 1030 per Figma */
+  /* Device frame: fluid up to 390px wide (Figma frame is 360), 1030 tall */
   .device {
     position: relative;
-    width: 360px; height: 1030px;
+    width: 100%; max-width: 390px; height: 1030px;
     background: var(--surface-l0);
     overflow: hidden;
   }
@@ -69,13 +69,13 @@
 
   /* ---------- Underlying stock page ---------- */
   .statusbar {
-    position: absolute; left: 0; top: 0; width: 360px; height: 50px;
+    position: absolute; left: 0; top: 0; right: 0; height: 50px;
     display: flex; align-items: center; justify-content: space-between;
     padding: 20px 20px 12px;
   }
   .statusbar .icons { display: flex; gap: 3px; }
   .page-header {
-    position: absolute; left: 0; top: 0; width: 360px; height: 114px;
+    position: absolute; left: 0; top: 0; right: 0; height: 114px;
     padding: 52px 0 16px;
   }
   .page-header .row { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 44px; }
@@ -88,7 +88,7 @@
 
   /* ---------- Order sheet (DlsSheet) ---------- */
   .sheet {
-    position: absolute; left: 0; top: 97px; width: 360px; bottom: 0;
+    position: absolute; left: 0; top: 97px; right: 0; bottom: 0;
     display: flex; flex-direction: column;
     background: var(--surface-l1);
     border-radius: 16px 16px 0 0;
@@ -135,6 +135,7 @@
   .r-input   { padding: 14px 0; height: 68px; }
   .r-otype   { padding: 12px 0 20px; height: 65px; gap: 23px; }
   .r-otype > span { flex: 1; }
+  @media (max-width: 359px) { .r-otype { gap: 8px; } .r-otype > span { white-space: nowrap; } }
   .r-valid   { padding: 18px 0; height: 69px; }
 
   /* Number input (DlsNumberField) */
